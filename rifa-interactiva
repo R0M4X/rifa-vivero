@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gran Rifa de Invierno - Vivero La Solitaria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '🌿';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .prizes {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .prizes h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .prize-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .prize-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .prize-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .prize-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #f39c12;
+            margin-bottom: 5px;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .number-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 10px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .number-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .number-btn:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+
+        .number-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .number-btn.selected {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            animation: pulse 1s infinite;
+        }
+
+        .number-btn.sold {
+            background: #95a5a6;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .number-btn.sold::after {
+            content: '✕';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .selection-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .selected-numbers {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 180, 216, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .numbers-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                gap: 5px;
+            }
+            
+            .number-btn {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎄 Gran Rifa de Invierno 🎄</h1>
+            <div class="subtitle">Vivero La Solitaria</div>
+        </div>
+
+        <div class="prizes">
+            <h3>🏆 Premios Increíbles 🏆</h3>
+            <div class="prize-list">
+                <div class="prize-item">
+                    <div class="prize-number">1er Premio</div>
+                    <div>🪴 1 Planta de Interior</div>
+                </div>
+                <div class="prize-item">
+                    <div class="prize-number">2do Premio</div>
+                    <div>🌵 1 Suculenta de Colección</div>
+                </div>
+                <div class="prize-item">
+                    <div class="prize-number">3er Premio</div>
+                    <div>🌿 3 Sucus de Promo</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h4>📋 Instrucciones:</h4>
+            <p>• Selecciona los números que deseas comprar</p>
+            <p>• Cada número cuesta $500</p>
+            <p>• Puedes comprar múltiples números</p>
+            <p>• Haz clic en "Pagar con Mercado Pago" para completar tu compra</p>
+        </div>
+
+        <div class="selection-info">
+            <div class="selected-numbers">
+                Números seleccionados: <span id="selectedNumbers">Ninguno</span>
+            </div>
+            <div class="total-price">
+                Total: $<span id="totalPrice">0</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToPayment()">
+                💳 Pagar con Mercado Pago
+            </button>
+        </div>
+
+        <div class="numbers-grid" id="numbersGrid">
+            <!-- Los números se generarán con JavaScript -->
+        </div>
+
+        <div class="footer">
+            <p><strong>Alias de Mercado Pago:</strong> lasolitariavivero</p>
+            <p>🌱 ¡Participa y gana increíbles plantas para tu hogar! 🌱</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const PRICE_PER_NUMBER = 500;
+        const TOTAL_NUMBERS = 100;
+        const MP_ALIAS = 'lasolitariavivero';
+
+        // Estado de la aplicación
+        let selectedNumbers = [];
+        let soldNumbers = JSON.parse(localStorage.getItem('soldNumbers') || '[]');
+
+        // Inicializar la aplicación
+        function init() {
+            createNumbersGrid();
+            updateSelectionInfo();
+        }
+
+        // Crear la grilla de números
+        function createNumbersGrid() {
+            const grid = document.getElementById('numbersGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+                const button = document.createElement('button');
+                button.className = 'number-btn';
+                button.textContent = i.toString().padStart(2, '0');
+                button.onclick = () => toggleNumber(i);
+
+                if (soldNumbers.includes(i)) {
+                    button.classList.add('sold');
+                    button.disabled = true;
+                }
+
+                grid.appendChild(button);
+            }
+        }
+
+        // Alternar selección de número
+        function toggleNumber(number) {
+            if (soldNumbers.includes(number)) return;
+
+            const button = document.querySelector(`.number-btn:nth-child(${number})`);
+            const index = selectedNumbers.indexOf(number);
+
+            if (index > -1) {
+                selectedNumbers.splice(index, 1);
+                button.classList.remove('selected');
+            } else {
+                selectedNumbers.push(number);
+                button.classList.add('selected');
+            }
+
+            updateSelectionInfo();
+        }
+
+        // Actualizar información de selección
+        function updateSelectionInfo() {
+            const selectedNumbersEl = document.getElementById('selectedNumbers');
+            const totalPriceEl = document.getElementById('totalPrice');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+
+            if (selectedNumbers.length === 0) {
+                selectedNumbersEl.textContent = 'Ninguno';
+                totalPriceEl.textContent = '0';
+                checkoutBtn.disabled = true;
+            } else {
+                selectedNumbers.sort((a, b) => a - b);
+                selectedNumbersEl.textContent = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
+                totalPriceEl.textContent = (selectedNumbers.length * PRICE_PER_NUMBER).toLocaleString();
+                checkoutBtn.disabled = false;
+            }
+        }
+
+        // Proceder al pago
+        function proceedToPayment() {
+            if (selectedNumbers.length === 0) {
+                alert('Por favor selecciona al menos un número');
+                return;
+            }
+
+            const total = selectedNumbers.length * PRICE_PER_NUMBER;
+            const numbersText = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
+            
+            // Crear mensaje para Mercado Pago
+            const message = `Rifa Gran Invierno - Vivero La Solitaria
+Números: ${numbersText}
+Cantidad: ${selectedNumbers.length}
+Total: $${total.toLocaleString()}`;
+
+            // Marcar números como vendidos
+            soldNumbers = [...soldNumbers, ...selectedNumbers];
+            localStorage.setItem('soldNumbers', JSON.stringify(soldNumbers));
+
+            // Crear enlace de Mercado Pago
+            const mpUrl = `https://www.mercadopago.com.ar/collect/checkout?alias=${MP_ALIAS}&amount=${total}&message=${encodeURIComponent(message)}`;
+            
+            // Abrir Mercado Pago en nueva ventana
+            window.open(mpUrl, '_blank');
+
+            // Limpiar selección y actualizar vista
+            selectedNumbers = [];
+            createNumbersGrid();
+            updateSelectionInfo();
+
+            // Mostrar mensaje de confirmación
+            alert(`¡Perfecto! Te redirigimos a Mercado Pago para completar tu compra.
+            
+Números seleccionados: ${numbersText}
+Total: $${total.toLocaleString()}
+
+¡Gracias por participar en la Gran Rifa de Invierno! 🌿`);
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
