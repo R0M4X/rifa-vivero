@@ -465,6 +465,23 @@
             <p><strong>💳 Link de Pago:</strong> link.mercadopago.com.ar/lasolitariavivero</p>
             <p><strong>🌱 ¡Participa y gana increíbles plantas para tu hogar! 🌱</strong></p>
             <p><em>Sorteo válido hasta agotar números disponibles</em></p>
+            
+            <!-- Botón de administrador (oculto) -->
+            <div style="margin-top: 30px;">
+                <button id="adminBtn" onclick="showAdminPanel()" style="background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">
+                    🔧 Admin
+                </button>
+                <div id="adminPanel" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6;">
+                    <h4>🛠️ Panel de Administración</h4>
+                    <p>Contraseña: <input type="password" id="adminPassword" placeholder="Ingresa la contraseña"></p>
+                    <button onclick="resetNumbers()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                        🔄 Resetear todos los números
+                    </button>
+                    <button onclick="hideAdminPanel()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -473,7 +490,7 @@
         const PRICE_PER_NUMBER = 2200;
         const TOTAL_NUMBERS = 100;
         const MP_LINK = 'https://link.mercadopago.com.ar/lasolitariavivero';
-        const FIREBASE_URL = 'https://rifa-vivero-default-rtdb.firebaseio.com/soldNumbers.json';
+        const FIREBASE_URL = 'https://rifa-vivero-solitaria-default-rtdb.firebaseio.com/';
 
         // Estado de la aplicación
         let selectedNumbers = [];
@@ -495,28 +512,27 @@
             }
         }
 
-        // Simulación de base de datos con localStorage sincronizado
+        // Cargar números vendidos desde Firebase
         async function loadSoldNumbers() {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('statusInfo').style.display = 'none';
             
             try {
-                // Simular delay de carga
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // En una implementación real, aquí cargarías desde Firebase o tu API
-                const stored = localStorage.getItem('globalSoldNumbers');
-                soldNumbers = stored ? JSON.parse(stored) : [];
-                
-                // Simular algunos números vendidos para demostración
-                if (soldNumbers.length === 0) {
-                    soldNumbers = [5, 13, 21, 34, 42, 67, 78, 89, 95]; // Números de ejemplo
-                    localStorage.setItem('globalSoldNumbers', JSON.stringify(soldNumbers));
+                const response = await fetch(FIREBASE_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    soldNumbers = data || [];
+                } else {
+                    console.error('Error al cargar desde Firebase');
+                    soldNumbers = JSON.parse(localStorage.getItem('backupSoldNumbers') || '[]');
                 }
+                
+                // Backup local
+                localStorage.setItem('backupSoldNumbers', JSON.stringify(soldNumbers));
                 
             } catch (error) {
                 console.error('Error al cargar números:', error);
-                soldNumbers = JSON.parse(localStorage.getItem('globalSoldNumbers') || '[]');
+                soldNumbers = JSON.parse(localStorage.getItem('backupSoldNumbers') || '[]');
             }
             
             document.getElementById('loading').style.display = 'none';
@@ -524,17 +540,28 @@
             updateAvailableCount();
         }
 
-        // Guardar números vendidos
+        // Guardar números vendidos en Firebase
         async function saveSoldNumbers() {
             try {
-                // En una implementación real, aquí guardarías en Firebase o tu API
-                localStorage.setItem('globalSoldNumbers', JSON.stringify(soldNumbers));
+                const response = await fetch(FIREBASE_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(soldNumbers)
+                });
                 
-                // Simular sincronización con servidor
-                console.log('Números sincronizados con el servidor');
+                if (response.ok) {
+                    console.log('Números guardados en Firebase exitosamente');
+                    localStorage.setItem('backupSoldNumbers', JSON.stringify(soldNumbers));
+                } else {
+                    console.error('Error al guardar en Firebase');
+                }
                 
             } catch (error) {
                 console.error('Error al guardar números:', error);
+                // Backup local en caso de error
+                localStorage.setItem('backupSoldNumbers', JSON.stringify(soldNumbers));
             }
         }
 
@@ -663,6 +690,65 @@ Complete el pago en Mercado Pago para confirmar su participación.
             createNumbersGrid();
             updateSelectionInfo();
         }, 30000);
+
+        // Funciones de administrador
+        function showAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        function hideAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        async function resetNumbers() {
+            const password = document.getElementById('adminPassword').value;
+            const correctPassword = 'solitaria2024'; // Cambia esta contraseña
+            
+            if (password !== correctPassword) {
+                alert('❌ Contraseña incorrecta');
+                return;
+            }
+            
+            const confirm = window.confirm('⚠️ ¿Estás seguro de que quieres resetear TODOS los números vendidos?\n\nEsta acción no se puede deshacer.');
+            
+            if (!confirm) return;
+            
+            try {
+                // Resetear en Firebase
+                const response = await fetch(FIREBASE_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify([])
+                });
+                
+                if (response.ok) {
+                    soldNumbers = [];
+                    localStorage.removeItem('backupSoldNumbers');
+                    createNumbersGrid();
+                    updateSelectionInfo();
+                    updateAvailableCount();
+                    hideAdminPanel();
+                    alert('✅ Números reseteados exitosamente');
+                } else {
+                    alert('❌ Error al resetear en Firebase');
+                }
+                
+            } catch (error) {
+                console.error('Error al resetear:', error);
+                alert('❌ Error al resetear los números');
+            }
+        }
+
+        // Mostrar botón de admin con combinación de teclas (Ctrl + Shift + A)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                document.getElementById('adminBtn').style.display = 'inline-block';
+            }
+        });
     </script>
 </body>
 </html>
